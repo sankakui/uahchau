@@ -234,6 +234,78 @@
     max-width:560px;
   }
 
+  /* ---------- rate table ---------- */
+  .rate-table-wrap{
+    margin-top:44px;
+    max-width:640px;
+    border:1px solid var(--hair);
+  }
+
+  .rate-caption{
+    font-size:0.68rem;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:var(--neon-dim);
+    padding:14px 18px;
+    border-bottom:1px solid var(--hair);
+  }
+
+  table.rate-table{
+    width:100%;
+    border-collapse:collapse;
+    font-family:var(--font-mono);
+    font-size:0.82rem;
+  }
+
+  .rate-table th,
+  .rate-table td{
+    text-align:left;
+    padding:12px 18px;
+    border-bottom:1px solid var(--hair);
+  }
+
+  .rate-table thead th{
+    color:var(--neon);
+    font-size:0.68rem;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    font-weight:500;
+    background:var(--bg-raised);
+  }
+
+  .rate-table tbody tr{
+    transition:background 0.25s ease;
+  }
+
+  .rate-table tbody tr:hover{
+    background:var(--bg-raised);
+  }
+
+  .rate-table tbody tr:last-child td{
+    border-bottom:none;
+  }
+
+  .rate-table .country{
+    color:var(--ink);
+    font-weight:500;
+    white-space:nowrap;
+  }
+
+  .rate-table .price{
+    color:var(--neon);
+    white-space:nowrap;
+  }
+
+  .rate-table .rule{
+    color:var(--ink-muted);
+  }
+
+  @media (max-width: 560px){
+    .rate-table th,
+    .rate-table td{ padding:10px 12px; }
+    .rate-table{ font-size:0.74rem; }
+  }
+
   h2{
     font-family:var(--font-mono);
     font-size:1rem;
@@ -245,8 +317,8 @@
     border-bottom:1px solid var(--hair);
   }
 
-  /* services grid */
-  .service-grid{
+  /* scope: will / won't two-column list */
+  .scope-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:1px;
@@ -254,37 +326,56 @@
     border:1px solid var(--hair);
   }
 
-  .service-card{
+  .scope-col{
     background:var(--bg);
-    padding:26px 24px;
-    transition:background 0.3s ease, transform 0.3s ease;
+    padding:28px 26px;
   }
 
-  .service-card:hover{
-    background:var(--bg-raised);
-    transform:translateY(-2px);
-  }
-
-  .service-card .num{
-    font-size:0.7rem;
-    color:var(--neon-dim);
+  .scope-col h3{
+    font-family:var(--font-mono);
+    font-size:0.78rem;
     letter-spacing:2px;
+    text-transform:uppercase;
+    margin:0 0 20px 0;
   }
 
-  .service-card h3{
-    font-family:var(--font-display);
-    font-style:italic;
-    font-weight:600;
-    font-size:1.35rem;
-    color:var(--ink);
-    margin:10px 0 8px 0;
-  }
+  .scope-col.will h3{ color:var(--neon); }
+  .scope-col.wont h3{ color:var(--ink-muted); }
 
-  .service-card p{
-    font-size:0.82rem;
-    line-height:1.7;
-    color:var(--ink-muted);
+  .scope-col ul{
+    list-style:none;
     margin:0;
+    padding:0;
+  }
+
+  .scope-col li{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:10px 0;
+    border-bottom:1px solid var(--hair);
+    font-size:0.84rem;
+    line-height:1.6;
+    color:var(--ink-muted);
+  }
+
+  .scope-col li:last-child{ border-bottom:none; }
+
+  .scope-col li::before{
+    flex-shrink:0;
+    font-size:0.8rem;
+    line-height:1.5;
+  }
+
+  .scope-col.will li::before{
+    content:"✓";
+    color:var(--neon);
+    text-shadow:0 0 6px var(--neon-glow);
+  }
+
+  .scope-col.wont li::before{
+    content:"✕";
+    color:var(--neon-dim);
   }
 
   /* accordion */
@@ -427,7 +518,7 @@
     nav li{ margin-bottom:0; }
     .sidebar-footer{ display:none; }
     main{ padding:48px 24px 90px 24px; }
-    .service-grid{ grid-template-columns:1fr; }
+    .scope-grid{ grid-template-columns:1fr; }
     h1.hero-line{ font-size:1.8rem; }
   }
 
@@ -447,7 +538,8 @@
 
       <nav>
         <ul>
-          <li><a href="#services">Dịch vụ</a></li>
+          <li><a href="#scope">Dịch vụ</a></li>
+          <li><a href="#shipping">Giá vận chuyển</a></li>
           <li><a href="#faq">FAQ</a></li>
           <li><a href="#tos">Điều khoản</a></li>
           <li><a href="#contact">Liên hệ</a></li>
@@ -456,7 +548,7 @@
     </div>
 
     <div class="sidebar-footer">
-      <span class="dot"></span>Inbox để được tư vấn
+      <span class="dot"></span>Tỷ giá biến động theo ngày
     </div>
   </aside>
 
@@ -466,81 +558,87 @@
 
     <section id="intro">
       <p class="eyebrow">// Xin chào</p>
-      <h1 class="hero-line">Nhận mua và vận chuyển hàng tại <em>Nhật, Hàn, Đài, Thái, Mỹ, Anh, Philippine.</em></h1>
-      <p class="lede">Báo giá cân vận chuyển của các nước
-        <table>
-  <tr>
-    <th>Nhật</th>
-    <td>200k/kg</td>
-    <td>Không làm tròn cân</td>
-  </tr>
-  <tr>
-    <th>Hàn</th>
-    <td>185k/kg</td>
-    <td>Không làm tròn cân</td>
-  </tr>
-  <tr>
-    <th>Đài</th>
-    <td>200k/kg</td>
-    <td>Không làm tròn cân</td>
-  </tr>
-  <tr>
-    <th>Thái</th>
-    <td>95k/kg</td>
-    <td>Làm tròn 500g/đơn</td>
-  </tr>
-  <tr>
-    <th>Phil</th>
-    <td>325k/kg</td>
-    <td>Được gom đơn cho tròn 500g</td>
-  </tr>
-  <tr>
-    <th>Mỹ</th>
-    <td>300k/kg</td>
-    <td>Làm tròn 500g/đơn</td>
-  </tr>
-  <tr>
-    <th>Anh</th>
-    <td>250k/kg</td>
-    <td>Làm tròn 500g/đơn</td>
-  </tr>
-      </table>
-      </p>
+      <h1 class="hero-line">Nhận checkout và vận chuyển hàng<em>Nhật, Hàn, Đài, Thái, Phil, Mỹ, Anh</em></h1>
+      <p class="lede">Tỷ giá biến động theo ngày, liên hệ mình để được báo giá trực tiếp, Lướt xuống dưới để đọc điều khoản bên mình</p>
     </section>
 
-    <section id="services" class="reveal">
+    <section id="scope" class="reveal">
       <h2>Dịch vụ</h2>
-      <div class="service-grid">
-        <div class="service-card">
-          <div class="num">01</div>
-          <h3>Album pre-orders</h3>
-          <p>Nhận mua album preorder ở Nhật, Hàn; trợ giá album, apply fansign, fancall, lucky draw, vận chuyển về kho riêng hay kho của mình</p>
+      <div class="scope-grid">
+        <div class="scope-col will">
+          <h3>Nhận</h3>
+          <ul>
+            <li>Checkout all web Nhật/Hàn, preorder albums</li>
+            <li>Checkout doujin trên Tora, Booth, Witchform, Postype, ...</li>
+            <li>Trợ giá album, apply fansign, fancall, lucky draw</li>
+            <li>Checkout card, deal lẻ trên Twitter</li>
+            <li>Mua raw Nhật/Hàn, mua coin, nạp coin, tải raw</li>
+            <li>Trung gian mua comm các sàn như skeb, crepe, ...</li>
+          </ul>
         </div>
-        <div class="service-card">
-          <div class="num">02</div>
-          <h3>Photocard sourcing</h3>
-          <p>Sealed album purchase with random photocard pulls, or targeted sourcing of specific members / versions on request.</p>
+        <div class="scope-col wont">
+          <h3>Không nhận</h3>
+          <ul>
+            <li>Đăng ký các loại subscription như patreon, pixiv fanbox, ...</li>
+            <li>Hàng cấm vận hoặc hạn chế cấm vận (đồ uống có cồn, sản phẩm chứa pin)</li>
+            <li>Các mặt hàng dễ vỡ, khó vận chuyểnh</li>
+            <li>Hàng Trung, hay là vận chuyển từ Trung-Việt</li>
+            <li>Nạp, đổi tiền ngoại tệ các nước</li>
+          </ul>
         </div>
-        <div class="service-card">
-          <div class="num">03</div>
-          <h3>Checkout all web Nhật/Hàn</h3>
-          <p>Purchasing on your behalf through Weverse, Makestar, Ktown4u, Yes24, and similar platforms that don't ship internationally on their own.</p>
-        </div>
-        <div class="service-card">
-          <div class="num">04</div>
-          <h3>Merch &amp; concert goods</h3>
-          <p>Light-sticks, apparel, and official concert merchandise, including items sold only at pop-up stores or on-site events.</p>
-        </div>
-        <div class="service-card">
-          <div class="num">05</div>
-          <h3>Combine shipping</h3>
-          <p>Multiple orders consolidated into a single international shipment to reduce total freight cost.</p>
-        </div>
-        <div class="service-card">
-          <div class="num">06</div>
-          <h3>Order tracking</h3>
-          <p>Regular status updates from purchase through to local delivery, with tracking numbers shared as soon as they're issued.</p>
-        </div>
+      </div>
+    </section>
+
+    <section id="shipping" class="reveal">
+      <h2>Giá vận chuyển</h2>
+      <div class="rate-table-wrap">
+        <div class="rate-caption">// Báo giá cân vận chuyển</div>
+        <table class="rate-table">
+          <thead>
+            <tr>
+              <th>Nước</th>
+              <th>Rate</th>
+              <th>Cân</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="country">Japan</td>
+              <td class="price">200k / kg</td>
+              <td class="rule">Không làm tròn cân</td>
+            </tr>
+            <tr>
+              <td class="country">Korea</td>
+              <td class="price">185k / kg</td>
+              <td class="rule">Không làm tròn cân</td>
+            </tr>
+            <tr>
+              <td class="country">Taiwan</td>
+              <td class="price">200k / kg</td>
+              <td class="rule">Không làm tròn cân</td>
+            </tr>
+            <tr>
+              <td class="country">Thailand</td>
+              <td class="price">95k / kg</td>
+              <td class="rule">Làm tròn 500g/đơn</td>
+            </tr>
+            <tr>
+              <td class="country">Philippines</td>
+              <td class="price">325k / kg</td>
+              <td class="rule">Gom đơn tròn 500g</td>
+            </tr>
+            <tr>
+              <td class="country">USA</td>
+              <td class="price">300k / kg</td>
+              <td class="rule">Làm tròn 500g/đơn</td>
+            </tr>
+            <tr>
+              <td class="country">UK</td>
+              <td class="price">250k / kg</td>
+              <td class="rule">Làm tròn 500g/đơn</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
