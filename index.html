@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hg Châu — Proxy Buying Service</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,500;1,600&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#050505;
+    --bg-raised:#0b0b0b;
+    --neon:#ff2b3d;
+    --neon-dim:#7a0e17;
+    --neon-glow:rgba(255,43,61,0.55);
+    --ink:#f5f0e8;
+    --ink-muted:#8a8078;
+    --hair:#2a0a0d;
+    --font-display:'Cormorant Garamond', serif;
+    --font-mono:'JetBrains Mono', monospace;
+  }
+
+  *{ box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-mono);
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+
+  /* subtle scanline / CRT texture, very low opacity */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:50;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.02) 0px,
+      rgba(255,255,255,0.02) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode:overlay;
+    opacity:0.4;
+  }
+
+  ::selection{ background:var(--neon); color:#000; }
+
+  a{ color:inherit; }
+
+  /* ---------- layout shell ---------- */
+  .shell{
+    display:grid;
+    grid-template-columns:280px 1px 1fr;
+    min-height:100vh;
+    max-width:1200px;
+    margin:0 auto;
+    position:relative;
+  }
+
+  .divider{
+    background:linear-gradient(to bottom, transparent, var(--neon-dim) 8%, var(--neon-dim) 92%, transparent);
+    width:1px;
+  }
+
+  /* ---------- left column / nav ---------- */
+  .sidebar{
+    padding:64px 32px 40px 40px;
+    position:sticky;
+    top:0;
+    height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+
+  .brand{
+    font-family:var(--font-display);
+    font-style:italic;
+    font-weight:600;
+    font-size:2.6rem;
+    color:var(--neon);
+    text-shadow:0 0 12px var(--neon-glow), 0 0 30px rgba(255,43,61,0.15);
+    letter-spacing:0.5px;
+    white-space:nowrap;
+    overflow:hidden;
+    border-right:2px solid transparent;
+  }
+
+  .brand.typing{
+    border-right-color:var(--neon);
+    animation:caret 0.8s steps(1) infinite;
+  }
+
+  @keyframes caret{
+    0%,100%{ border-right-color:var(--neon); }
+    50%{ border-right-color:transparent; }
+  }
+
+  .tagline{
+    margin-top:6px;
+    font-size:0.68rem;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color:var(--ink-muted);
+    opacity:0;
+    animation:fadeUp 0.6s ease forwards;
+    animation-delay:1.4s;
+  }
+
+  nav{
+    margin-top:64px;
+    opacity:0;
+    animation:fadeUp 0.6s ease forwards;
+    animation-delay:1.6s;
+  }
+
+  nav ul{
+    list-style:none;
+    margin:0; padding:0;
+  }
+
+  nav li{ margin-bottom:22px; }
+
+  nav a{
+    text-decoration:none;
+    font-size:0.95rem;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color:var(--ink-muted);
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    transition:color 0.25s ease, transform 0.25s ease;
+    position:relative;
+  }
+
+  nav a::before{
+    content:"›";
+    color:var(--neon-dim);
+    font-size:1.1rem;
+    transition:color 0.25s ease, transform 0.25s ease;
+  }
+
+  nav a:hover, nav a:focus-visible{
+    color:var(--neon);
+    transform:translateX(4px);
+  }
+
+  nav a:hover::before, nav a:focus-visible::before{
+    color:var(--neon);
+    transform:translateX(2px);
+  }
+
+  .sidebar-footer{
+    font-size:0.62rem;
+    color:var(--neon-dim);
+    letter-spacing:2px;
+    text-transform:uppercase;
+    opacity:0;
+    animation:fadeUp 0.6s ease forwards;
+    animation-delay:1.8s;
+  }
+
+  .sidebar-footer .dot{
+    display:inline-block;
+    width:6px; height:6px;
+    border-radius:50%;
+    background:var(--neon);
+    box-shadow:0 0 8px var(--neon-glow);
+    margin-right:8px;
+    animation:pulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes pulse{
+    0%,100%{ opacity:1; }
+    50%{ opacity:0.35; }
+  }
+
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(10px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+
+  /* ---------- right column / content ---------- */
+  main{
+    padding:80px 56px 120px 56px;
+  }
+
+  section{
+    margin-bottom:110px;
+    scroll-margin-top:60px;
+  }
+
+  section:first-of-type{ margin-top:0; }
+
+  .eyebrow{
+    font-size:0.68rem;
+    letter-spacing:4px;
+    text-transform:uppercase;
+    color:var(--neon-dim);
+    margin-bottom:14px;
+  }
+
+  h1.hero-line{
+    font-family:var(--font-display);
+    font-style:italic;
+    font-weight:500;
+    font-size:2.3rem;
+    line-height:1.35;
+    color:var(--ink);
+    max-width:640px;
+    margin:0 0 20px 0;
+  }
+
+  h1.hero-line em{
+    color:var(--neon);
+    font-style:italic;
+    text-shadow:0 0 10px var(--neon-glow);
+  }
+
+  .lede{
+    color:var(--ink-muted);
+    font-size:0.92rem;
+    line-height:1.8;
+    max-width:560px;
+  }
+
+  h2{
+    font-family:var(--font-mono);
+    font-size:1rem;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:var(--neon);
+    margin:0 0 34px 0;
+    padding-bottom:14px;
+    border-bottom:1px solid var(--hair);
+  }
+
+  /* services grid */
+  .service-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1px;
+    background:var(--hair);
+    border:1px solid var(--hair);
+  }
+
+  .service-card{
+    background:var(--bg);
+    padding:26px 24px;
+    transition:background 0.3s ease, transform 0.3s ease;
+  }
+
+  .service-card:hover{
+    background:var(--bg-raised);
+    transform:translateY(-2px);
+  }
+
+  .service-card .num{
+    font-size:0.7rem;
+    color:var(--neon-dim);
+    letter-spacing:2px;
+  }
+
+  .service-card h3{
+    font-family:var(--font-display);
+    font-style:italic;
+    font-weight:600;
+    font-size:1.35rem;
+    color:var(--ink);
+    margin:10px 0 8px 0;
+  }
+
+  .service-card p{
+    font-size:0.82rem;
+    line-height:1.7;
+    color:var(--ink-muted);
+    margin:0;
+  }
+
+  /* accordion */
+  .accordion-item{
+    border-bottom:1px solid var(--hair);
+  }
+
+  .accordion-item:first-child{
+    border-top:1px solid var(--hair);
+  }
+
+  .accordion-trigger{
+    width:100%;
+    background:none;
+    border:none;
+    color:var(--ink);
+    font-family:var(--font-mono);
+    font-size:0.9rem;
+    text-align:left;
+    padding:20px 4px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:20px;
+    transition:color 0.25s ease;
+  }
+
+  .accordion-trigger:hover, .accordion-trigger:focus-visible{
+    color:var(--neon);
+  }
+
+  .accordion-trigger .q{ flex:1; }
+
+  .accordion-icon{
+    font-family:var(--font-mono);
+    font-size:1.1rem;
+    color:var(--neon);
+    flex-shrink:0;
+    transition:transform 0.35s cubic-bezier(0.65,0,0.35,1);
+    display:inline-block;
+  }
+
+  .accordion-item.open .accordion-icon{
+    transform:rotate(135deg);
+  }
+
+  .accordion-panel{
+    max-height:0;
+    overflow:hidden;
+    transition:max-height 0.4s cubic-bezier(0.65,0,0.35,1);
+  }
+
+  .accordion-panel-inner{
+    padding:0 4px 22px 4px;
+    color:var(--ink-muted);
+    font-size:0.84rem;
+    line-height:1.85;
+    max-width:600px;
+  }
+
+  /* contact */
+  .contact-line{
+    display:flex;
+    gap:14px;
+    align-items:baseline;
+    margin-bottom:14px;
+    font-size:0.88rem;
+  }
+
+  .contact-line .label{
+    color:var(--neon-dim);
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+    font-size:0.68rem;
+    min-width:110px;
+  }
+
+  .contact-line a{
+    color:var(--ink);
+    text-decoration:none;
+    border-bottom:1px solid var(--neon-dim);
+    transition:color 0.25s ease, border-color 0.25s ease;
+  }
+
+  .contact-line a:hover{
+    color:var(--neon);
+    border-color:var(--neon);
+  }
+
+  .status-note{
+    margin-top:36px;
+    font-size:0.72rem;
+    color:var(--ink-muted);
+    letter-spacing:0.5px;
+  }
+  .status-note .dot{
+    display:inline-block;
+    width:6px; height:6px;
+    border-radius:50%;
+    background:var(--neon);
+    box-shadow:0 0 8px var(--neon-glow);
+    margin-right:8px;
+    animation:pulse 1.8s ease-in-out infinite;
+  }
+
+  /* scroll reveal */
+  .reveal{
+    opacity:0;
+    transform:translateY(18px);
+    transition:opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.in{
+    opacity:1;
+    transform:translateY(0);
+  }
+
+  /* mobile nav toggle (hidden on desktop) */
+  .mobile-bar{ display:none; }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 860px){
+    .shell{
+      grid-template-columns:1fr;
+    }
+    .divider{ display:none; }
+    .sidebar{
+      position:relative;
+      height:auto;
+      padding:36px 24px 24px 24px;
+      border-bottom:1px solid var(--hair);
+    }
+    .brand{ font-size:2rem; }
+    nav{ margin-top:28px; }
+    nav ul{
+      display:flex;
+      flex-wrap:wrap;
+      gap:18px 28px;
+    }
+    nav li{ margin-bottom:0; }
+    .sidebar-footer{ display:none; }
+    main{ padding:48px 24px 90px 24px; }
+    .service-grid{ grid-template-columns:1fr; }
+    h1.hero-line{ font-size:1.8rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; }
+    .brand{ border-right-color:transparent; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <aside class="sidebar">
+    <div>
+      <div class="brand" id="brandType"></div>
+      <div class="tagline">Personal proxy buying — KR / JP / EU / US / TW / TH</div>
+
+      <nav>
+        <ul>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#faq">FAQ</a></li>
+          <li><a href="#tos">Terms</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="sidebar-footer">
+      <span class="dot"></span>currently accepting orders
+    </div>
+  </aside>
+
+  <div class="divider"></div>
+
+  <main>
+
+    <section id="intro">
+      <p class="eyebrow">// welcome</p>
+      <h1 class="hero-line">I buy the goods you can't reach — <em>albums, photocards, merch &amp; more</em>, sourced directly and shipped to you.</h1>
+      <p class="lede">A one-person proxy buying service for kpop goods across Korea, Japan, Europe, the US, Taiwan and Thailand. Scroll down for services, FAQ, and terms — no account needed to browse.</p>
+    </section>
+
+    <section id="services" class="reveal">
+      <h2>Services</h2>
+      <div class="service-grid">
+        <div class="service-card">
+          <div class="num">01</div>
+          <h3>Album pre-orders</h3>
+          <p>Reservation and purchase of new releases from Korean and Japanese retailers, including limited fan-sign and version-exclusive runs.</p>
+        </div>
+        <div class="service-card">
+          <div class="num">02</div>
+          <h3>Photocard sourcing</h3>
+          <p>Sealed album purchase with random photocard pulls, or targeted sourcing of specific members / versions on request.</p>
+        </div>
+        <div class="service-card">
+          <div class="num">03</div>
+          <h3>Platform proxy orders</h3>
+          <p>Purchasing on your behalf through Weverse, Makestar, Ktown4u, Yes24, and similar platforms that don't ship internationally on their own.</p>
+        </div>
+        <div class="service-card">
+          <div class="num">04</div>
+          <h3>Merch &amp; concert goods</h3>
+          <p>Light-sticks, apparel, and official concert merchandise, including items sold only at pop-up stores or on-site events.</p>
+        </div>
+        <div class="service-card">
+          <div class="num">05</div>
+          <h3>Combine shipping</h3>
+          <p>Multiple orders consolidated into a single international shipment to reduce total freight cost.</p>
+        </div>
+        <div class="service-card">
+          <div class="num">06</div>
+          <h3>Order tracking</h3>
+          <p>Regular status updates from purchase through to local delivery, with tracking numbers shared as soon as they're issued.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq" class="reveal">
+      <h2>FAQ</h2>
+      <div class="accordion" id="faqAccordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger">
+            <span class="q">How does an order actually work?</span>
+            <span class="accordion-icon">+</span>
+          </button>
+          <div class="accordion-panel">
+            <div class="accordion-panel-inner">
+              You send me the item and store link, I confirm price and availability, you pay the item cost plus service fee upfront, and I place the order in your name. You'll get updates at each stage until it ships to you.
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger">
+            <span class="q">What are your fees?</span>
+            <span class="accordion-icon">+</span>
+          </button>
+          <div class="accordion-panel">
+            <div class="accordion-panel-inner">
+              A flat service fee per order, plus actual international shipping cost split across everyone in that shipment if combined. Exact numbers are quoted per order since they depend on item weight and destination.
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger">
+            <span class="q">How long does shipping take?</span>
+            <span class="accordion-icon">+</span>
+          </button>
+          <div class="accordion-panel">
+            <div class="accordion-panel-inner">
+              Domestic processing in the origin country usually takes a few days to a couple of weeks depending on release schedules, then international shipping on top of that. Pre-orders follow the official release date and are always the slowest step.
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger">
+            <span class="q">What if an item is sold out?</span>
+            <span class="accordion-icon">+</span>
+          </button>
+          <div class="accordion-panel">
+            <div class="accordion-panel-inner">
+              I'll let you know as early as possible and look for the item on secondary marketplaces if you'd like, at a separately quoted price. Deposits for items that go out of stock before I can order them are refunded in full.
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger">
+            <span class="q">What payment methods do you accept?</span>
+            <span class="accordion-icon">+</span>
+          </button>
+          <div class="accordion-panel">
+            <div class="accordion-panel-inner">
+              Bank transfer and common e-wallet apps. Details are shared directly once an order is confirmed.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tos" class="reveal">
+      <h2>Terms of Service</h2>
+      <div class="accordion" id="tosAccordion">
+        <div class="accordion-item">
+          <button class="accordion-trigger">
+            <span class="q">Payment &amp; deposits</span>
+            <span class="accordion-icon">+</span>
+          </button>
+          <div class="accordion-panel">
+            <div class="accordion-panel-inner">
+              Full payment (item cost + service fee) is required before any order is placed. Orders are not reserved or purchased until payment is confirmed.
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger">
+            <span class="q">Cancellations &amp; refunds</span>
+            <span class="accordion-icon">+</span>
+          </button>
+          <div class="accordion-panel">
+            <div class="accordion-panel-inner">
+              Once an order has been placed with the retailer, it cannot be cancelled or refunded, in line with the retailer's own policy. Refunds are only issued if an item cannot be sourced before purchase.
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger">
+            <span class="q">Shipping delays &amp; customs</span>
+            <span class="accordion-icon">+</span>
+          </button>
+          <div class="accordion-panel">
+            <div class="accordion-panel-inner">
+              I'm not responsible for delays caused by carriers, customs processing, or local delivery services once a package has left the origin country. Any customs duties charged in your country are the buyer's responsibility.
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger">
+            <span class="q">Item condition</span>
+            <span class="accordion-icon">+</span>
+          </button>
+          <div class="accordion-panel">
+            <div class="accordion-panel-inner">
+              Items are purchased brand new and inspected before reshipping where possible. Minor shipping wear on outer packaging (not the item itself) is not grounds for a refund.
+            </div>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <button class="accordion-trigger">
+            <span class="q">Buyer responsibilities</span>
+            <span class="accordion-icon">+</span>
+          </button>
+          <div class="accordion-panel">
+            <div class="accordion-panel-inner">
+              Buyers are responsible for providing an accurate shipping address and any version/member preferences at the time of order. Orders cannot be corrected after they've been placed with the retailer.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact" class="reveal">
+      <h2>Contact</h2>
+      <div class="contact-line">
+        <span class="label">Instagram</span>
+        <a href="#" target="_blank" rel="noopener">@your_handle</a>
+      </div>
+      <div class="contact-line">
+        <span class="label">Email</span>
+        <a href="mailto:you@example.com">you@example.com</a>
+      </div>
+      <div class="contact-line">
+        <span class="label">Response time</span>
+        <span>Usually within 24 hours</span>
+      </div>
+      <p class="status-note"><span class="dot"></span>Slots open — new orders accepted</p>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // ---- typewriter brand name ----
+  (function(){
+    var el = document.getElementById('brandType');
+    var text = "Hg Châu";
+    var i = 0;
+    el.classList.add('typing');
+    function tick(){
+      if(i <= text.length){
+        el.textContent = text.slice(0, i);
+        i++;
+        setTimeout(tick, 90);
+      } else {
+        setTimeout(function(){ el.classList.remove('typing'); }, 900);
+      }
+    }
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      el.textContent = text;
+      el.classList.remove('typing');
+    } else {
+      tick();
+    }
+  })();
+
+  // ---- accordion ----
+  document.querySelectorAll('.accordion-item').forEach(function(item){
+    var trigger = item.querySelector('.accordion-trigger');
+    var panel = item.querySelector('.accordion-panel');
+    var inner = item.querySelector('.accordion-panel-inner');
+
+    trigger.addEventListener('click', function(){
+      var isOpen = item.classList.contains('open');
+
+      // close siblings within the same accordion group
+      var group = item.parentElement;
+      group.querySelectorAll('.accordion-item.open').forEach(function(openItem){
+        if(openItem !== item){
+          openItem.classList.remove('open');
+          openItem.querySelector('.accordion-panel').style.maxHeight = null;
+        }
+      });
+
+      if(isOpen){
+        item.classList.remove('open');
+        panel.style.maxHeight = null;
+      } else {
+        item.classList.add('open');
+        panel.style.maxHeight = inner.offsetHeight + 'px';
+      }
+    });
+  });
+
+  // ---- scroll reveal ----
+  var revealEls = document.querySelectorAll('.reveal');
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        entry.target.classList.add('in');
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  revealEls.forEach(function(el){ io.observe(el); });
+</script>
+
+</body>
+</html>
